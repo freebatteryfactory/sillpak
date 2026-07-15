@@ -1,0 +1,13 @@
+---
+import type { Breadcrumb } from '../lib/server/breadcrumbs.js';
+interface Props { readonly items: readonly Breadcrumb[] }
+const { items } = Astro.props;
+---
+<nav class="breadcrumbs" aria-label="Artifact path">
+  {items.map((item, index) => (
+    <span class="breadcrumb-segment">
+      {index > 0 && <span aria-hidden="true" class="breadcrumb-separator">/</span>}
+      <a href={item.route}>{item.label}</a>
+    </span>
+  ))}
+</nav>

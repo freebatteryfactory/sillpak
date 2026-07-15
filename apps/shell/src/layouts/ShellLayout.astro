@@ -1,0 +1,62 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import { satelliteAttrs } from '@czap/astro';
+import type { ArtifactAddress } from '@sillpak/contracts';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import NavigatorRail from '../components/NavigatorRail.astro';
+import TerminalDock from '../components/TerminalDock.astro';
+import ContextShelf from '../components/ContextShelf.astro';
+import VoiceControl from '../components/VoiceControl.astro';
+import type { Breadcrumb } from '../lib/server/breadcrumbs.js';
+import { shellWidthBoundary } from '../lib/liteship/shell-boundary.js';
+import '../styles/shell.css';
+
+interface Props {
+  readonly title: string;
+  readonly workspace: string;
+  readonly currentRoute: string;
+  readonly cwdAddress: ArtifactAddress;
+  readonly workspaceGeneration: number;
+  readonly breadcrumbs: readonly Breadcrumb[];
+}
+const { title, workspace, currentRoute, cwdAddress, workspaceGeneration, breadcrumbs } = Astro.props;
+---
+<!doctype html>
+<html lang="en" transition:animate="none">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="referrer" content="no-referrer" />
+    <title>{title} · SillPak</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div
+      class="shell"
+      data-sillpak
+      {...satelliteAttrs({ boundary: shellWidthBoundary })}
+      data-shell-mode="balanced"
+      data-route-address={JSON.stringify(cwdAddress)}
+      data-workspace-generation={workspaceGeneration}
+    >
+      <header class="shell-bar">
+        <div class="product-mark">SillPak <span class="instrument-status" data-workspace-status></span></div>
+        <Breadcrumbs items={breadcrumbs} />
+        <div class="shell-actions">
+          <button type="button" class="text-command" data-shell-focus aria-pressed="false">Focus artifact</button>
+          <VoiceControl />
+        </div>
+      </header>
+      <NavigatorRail workspace={workspace} currentRoute={currentRoute} />
+      <main class="artifact-stage" transition:name="artifact-stage"><slot /></main>
+      <TerminalDock cwdAddress={cwdAddress} workspaceGeneration={workspaceGeneration} />
+      <ContextShelf />
+    </div>
+    <script>
+      import { bootShell } from '../lib/client/boot.js';
+      bootShell();
+      document.addEventListener('astro:page-load', bootShell);
+    </script>
+  </body>
+</html>

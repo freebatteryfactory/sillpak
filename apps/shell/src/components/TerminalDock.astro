@@ -1,0 +1,29 @@
+---
+import type { ArtifactAddress } from '@sillpak/contracts';
+interface Props {
+  readonly cwdAddress: ArtifactAddress;
+  readonly workspaceGeneration: number;
+}
+const { cwdAddress, workspaceGeneration } = Astro.props;
+const sessionId = `primary:${workspaceGeneration}`;
+---
+<section
+  class="terminal-dock"
+  aria-label="Terminal"
+  data-terminal-dock
+  data-session-id={sessionId}
+  data-cwd-address={JSON.stringify(cwdAddress)}
+  data-workspace-generation={workspaceGeneration}
+  data-czap-morph-opaque
+  transition:persist="sillpak-terminal"
+>
+  <header class="instrument-header">
+    <span>Terminal</span>
+    <span class="instrument-status" data-terminal-status>not connected</span>
+    <input class="terminal-search" type="search" aria-label="Find terminal output" placeholder="Find output" data-terminal-search />
+    <button type="button" class="text-command" data-terminal-focus aria-pressed="false">Focus terminal</button>
+    <button type="button" class="text-command" data-terminal-restart>Restart</button>
+    <button type="button" class="text-command" data-terminal-kill>Stop</button>
+  </header>
+  <div class="terminal-surface" data-terminal-surface></div>
+</section>

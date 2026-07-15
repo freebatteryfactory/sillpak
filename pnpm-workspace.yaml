@@ -1,0 +1,12 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+allowBuilds:
+  '@parcel/watcher': true
+  electron: true
+  node-pty: true
+
+strictPeerDependencies: true
+shamefullyHoist: false
+saveWorkspaceProtocol: rolling

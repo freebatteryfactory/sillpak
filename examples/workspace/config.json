@@ -1,0 +1,6 @@
+{
+  "workspace": "local",
+  "terminal": "persistent",
+  "context": "explicit",
+  "receipts": "observational"
+}

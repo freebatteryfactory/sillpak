@@ -1,0 +1,12 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly renderUrl: string }
+const { descriptor, renderUrl } = Astro.props;
+---
+<section class="artifact-page document-page" data-docx-view data-render-url={renderUrl}>
+  <header class="artifact-header">
+    <div><div class="artifact-kicker">Word document · formatted preview</div><h1>{descriptor.name}</h1></div>
+    <div class="artifact-meta">Read-only. Export to Markdown before editing.</div>
+  </header>
+  <div class="formatted-document" data-docx-surface data-czap-morph-opaque>Rendering document…</div>
+</section>

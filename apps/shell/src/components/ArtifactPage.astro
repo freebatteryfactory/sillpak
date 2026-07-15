@@ -1,0 +1,43 @@
+---
+import type { ArtifactDescriptor, DirectoryEntry } from '@sillpak/contracts';
+import DirectoryView from './DirectoryView.astro';
+import MarkdownView from './MarkdownView.astro';
+import TextView from './TextView.astro';
+import DocxView from './DocxView.astro';
+import PdfView from './PdfView.astro';
+import SpreadsheetView from './SpreadsheetView.astro';
+import MediaView from './MediaView.astro';
+import UnknownView from './UnknownView.astro';
+import type { SafeProjectionHtml } from '../lib/server/markdown.js';
+
+interface Props {
+  readonly descriptor: ArtifactDescriptor;
+  readonly entries?: readonly DirectoryEntry[];
+  readonly markdownHtml?: SafeProjectionHtml;
+  readonly mtimeMs?: number;
+}
+const { descriptor, entries = [], markdownHtml, mtimeMs = 0 } = Astro.props;
+const rawUrl = descriptor.rawUrl ?? '';
+const encodedPath = descriptor.address.segments.map(encodeURIComponent).join('/');
+const directoryApi = `/api/directory/${descriptor.address.workspace}${encodedPath ? `/${encodedPath}` : ''}`;
+const renderUrl = `/api/render/${descriptor.address.workspace}${encodedPath ? `/${encodedPath}` : ''}`;
+---
+{descriptor.kind !== 'directory' && (
+  <div
+    class="artifact-system-actions"
+    data-artifact-system-actions
+    data-artifact-address={JSON.stringify(descriptor.address)}
+  >
+    <span class="artifact-meta">System</span>
+    <button type="button" class="text-command" data-reveal-artifact>Reveal</button>
+    <button type="button" class="text-command" data-open-artifact>Open in system</button>
+  </div>
+)}
+{descriptor.kind === 'directory' && <DirectoryView descriptor={descriptor} entries={entries} directoryApi={directoryApi} />}
+{descriptor.kind === 'markdown' && markdownHtml && <MarkdownView descriptor={descriptor} html={markdownHtml} sourceUrl={rawUrl} mtimeMs={mtimeMs} />}
+{['code', 'text', 'json'].includes(descriptor.kind) && <TextView descriptor={descriptor} sourceUrl={rawUrl} mtimeMs={mtimeMs} />}
+{descriptor.kind === 'docx' && <DocxView descriptor={descriptor} renderUrl={renderUrl} />}
+{descriptor.kind === 'pdf' && <PdfView descriptor={descriptor} sourceUrl={rawUrl} />}
+{descriptor.kind === 'spreadsheet' && <SpreadsheetView descriptor={descriptor} renderUrl={renderUrl} />}
+{['image', 'audio', 'video'].includes(descriptor.kind) && <MediaView descriptor={descriptor} sourceUrl={rawUrl} />}
+{['archive', 'unknown'].includes(descriptor.kind) && <UnknownView descriptor={descriptor} />}

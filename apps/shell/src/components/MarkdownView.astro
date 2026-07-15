@@ -1,0 +1,27 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+import type { SafeProjectionHtml } from '../lib/server/markdown.js';
+import TrustedProjection from './TrustedProjection.astro';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly html: SafeProjectionHtml; readonly sourceUrl: string; readonly mtimeMs: number }
+const { descriptor, html, sourceUrl, mtimeMs } = Astro.props;
+---
+<section class="artifact-page document-page" data-markdown-view data-source-url={sourceUrl} data-mtime-ms={mtimeMs}>
+  <header class="artifact-header">
+    <div>
+      <div class="artifact-kicker">Markdown</div>
+      <h1>{descriptor.name}</h1>
+      <div class="artifact-meta">Rich edit normalizes supported Markdown. Source edit preserves exact text.</div>
+    </div>
+    <div class="artifact-actions">
+      <button type="button" class="text-command" data-markdown-mode="preview" aria-pressed="true">Preview</button>
+      <button type="button" class="text-command" data-markdown-mode="rich" aria-pressed="false">Rich edit</button>
+      <button type="button" class="text-command" data-markdown-mode="source" aria-pressed="false">Source edit</button>
+      <button type="button" class="text-command" data-markdown-save hidden>Save</button>
+      <button type="button" class="text-command" data-attach-context data-context-path={descriptor.address.segments.join('/')}>Attach context</button>
+      <span class="instrument-status" data-markdown-status>preview</span>
+    </div>
+  </header>
+  <div data-markdown-preview><TrustedProjection html={html} /></div>
+  <div class="rich-editor" data-markdown-rich-editor data-czap-morph-opaque hidden></div>
+  <div class="code-editor" data-markdown-source-editor data-czap-morph-opaque hidden></div>
+</section>

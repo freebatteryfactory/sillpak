@@ -1,0 +1,11 @@
+---
+interface Props { readonly workspace: string; readonly currentRoute: string }
+const { workspace, currentRoute } = Astro.props;
+---
+<aside class="navigator-rail" aria-label="Workspace navigation">
+  <div class="rail-heading">Workspace</div>
+  <a class="rail-link" href={`/w/${workspace}`}>Root</a>
+  <a class="rail-link" href={currentRoute} aria-current="page">Current</a>
+  <div class="rail-rule"></div>
+  <button type="button" class="text-command" data-choose-workspace>Choose folder</button>
+</aside>

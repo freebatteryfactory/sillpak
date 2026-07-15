@@ -1,0 +1,27 @@
+---
+import type { ArtifactDescriptor, DirectoryEntry } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly entries: readonly DirectoryEntry[]; readonly directoryApi: string }
+const { descriptor, entries, directoryApi } = Astro.props;
+const initial = entries.slice(0, 250);
+---
+<section class="artifact-page directory-page" data-directory-view data-directory-api={directoryApi} data-entry-count={entries.length}>
+  <header class="artifact-header">
+    <div>
+      <div class="artifact-kicker">Directory</div>
+      <h1>{descriptor.name}</h1>
+    </div>
+    <div class="artifact-meta">{entries.length} entries</div>
+  </header>
+  <div class="directory-scroll" data-directory-scroll>
+    <div class="directory-list" data-directory-list>
+      {initial.map((entry) => (
+        <a class="directory-row" href={entry.route}>
+          <span class:list={["kind-mark", `kind-${entry.artifactKind}`]}>{entry.kind === 'directory' ? 'DIR' : entry.extension.replace('.', '').toUpperCase() || 'FILE'}</span>
+          <span class="entry-name">{entry.name}</span>
+          <span class="entry-size">{entry.kind === 'directory' ? '' : entry.size.toLocaleString()}</span>
+          <time datetime={entry.modifiedAt}>{new Date(entry.modifiedAt).toLocaleString()}</time>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

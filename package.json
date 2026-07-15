@@ -1,0 +1,35 @@
+{
+  "name": "sillpak",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first routed artifact workspace with persistent terminal and browser tools.",
+  "main": "apps/desktop/dist/main.js",
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22.13.0",
+    "pnpm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:shell": "pnpm --filter @sillpak/shell dev",
+    "dev:desktop": "pnpm --filter @sillpak/desktop dev",
+    "build": "pnpm -r build",
+    "build:shell": "pnpm --filter @sillpak/shell build",
+    "build:desktop": "pnpm --filter @sillpak/desktop build",
+    "package:desktop": "pnpm run build && electron-builder --config electron-builder.yml",
+    "check": "pnpm run qa:architecture && pnpm run qa:handoff && pnpm run test && pnpm run typecheck && pnpm run qa:gauntlet && pnpm run qa:audit",
+    "qa:architecture": "node scripts/qa-architecture.mjs",
+    "qa:handoff": "node scripts/qa-handoff.mjs",
+    "typecheck": "pnpm -r typecheck",
+    "typecheck:scaffold": "tsc -p qa/tsconfig.scaffold.json",
+    "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
+    "qa:gauntlet": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality check",
+    "qa:audit": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality audit"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.15",
+    "electron-builder": "26.0.12",
+    "typescript": "5.9.3"
+  }
+}

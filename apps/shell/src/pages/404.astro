@@ -1,0 +1,10 @@
+---
+import ShellLayout from '../layouts/ShellLayout.astro';
+---
+<ShellLayout title="Not found" workspace="local" currentRoute="/w/local" cwd="" breadcrumbs={[{ label: 'local', route: '/w/local' }]}>
+  <section class="artifact-page unknown-page">
+    <header class="artifact-header"><div><div class="artifact-kicker">404</div><h1>Artifact not found</h1></div></header>
+    <p>The requested route did not resolve to an artifact inside the workspace boundary.</p>
+    <a href="/w/local">Return to workspace root</a>
+  </section>
+</ShellLayout>

@@ -1,0 +1,27 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [],
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "baseUrl": "..",
+    "paths": {
+      "@sillpak/contracts": [
+        "packages/contracts/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "../packages/contracts/src/**/*.ts",
+    "../apps/shell/src/lib/state/**/*.ts",
+    "../apps/shell/src/lib/client/island-registry.ts",
+    "../apps/shell/src/lib/client/context-controller.ts",
+    "../apps/shell/src/lib/server/byte-range.ts",
+    "../apps/desktop/src/protocol.ts",
+    "../apps/shell/src/lib/client/shell-mode-controller.ts"
+  ]
+}

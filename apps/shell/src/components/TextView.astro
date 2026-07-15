@@ -1,0 +1,16 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly sourceUrl: string; readonly mtimeMs: number }
+const { descriptor, sourceUrl, mtimeMs } = Astro.props;
+---
+<section class="artifact-page code-page" data-code-view data-source-url={sourceUrl} data-language={descriptor.extension} data-mtime-ms={mtimeMs} data-size={descriptor.size}>
+  <header class="artifact-header">
+    <div><div class="artifact-kicker">{descriptor.kind}</div><h1>{descriptor.name}</h1></div>
+    <div class="artifact-actions">
+      <button type="button" class="text-command" data-code-save>Save</button>
+      <button type="button" class="text-command" data-attach-context data-context-path={descriptor.address.segments.join('/')}>Attach context</button>
+      <span class="instrument-status" data-code-status>clean</span>
+    </div>
+  </header>
+  <div class="code-editor" data-code-editor data-czap-morph-opaque></div>
+</section>

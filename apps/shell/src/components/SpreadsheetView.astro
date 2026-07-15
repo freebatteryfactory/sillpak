@@ -1,0 +1,13 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly renderUrl: string }
+const { descriptor, renderUrl } = Astro.props;
+---
+<section class="artifact-page spreadsheet-page" data-spreadsheet-view data-render-url={renderUrl}>
+  <header class="artifact-header">
+    <div><div class="artifact-kicker">Spreadsheet projection</div><h1>{descriptor.name}</h1></div>
+    <div class="artifact-meta">XLSX is read-only in the first slice; CSV editing is a scoped follow-on.</div>
+  </header>
+  <div class="sheet-tabs" data-sheet-tabs></div>
+  <div class="spreadsheet-surface" data-spreadsheet-surface data-czap-morph-opaque>Reading workbook…</div>
+</section>

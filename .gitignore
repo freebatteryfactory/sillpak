@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.cache/
+coverage/
+artifacts/
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db
+apps/shell/.env
+apps/desktop/.env

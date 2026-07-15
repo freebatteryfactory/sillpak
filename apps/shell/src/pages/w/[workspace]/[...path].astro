@@ -1,0 +1,43 @@
+---
+import { stat } from 'node:fs/promises';
+import ShellLayout from '../../../layouts/ShellLayout.astro';
+import ArtifactPage from '../../../components/ArtifactPage.astro';
+import { resolveExistingAddress, workspaceGeneration } from '../../../lib/server/path-policy.js';
+import { describeArtifact, listDirectory, readText } from '../../../lib/server/artifacts.js';
+import { breadcrumbs } from '../../../lib/server/breadcrumbs.js';
+import { renderMarkdown } from '../../../lib/server/markdown.js';
+
+export const prerender = false;
+
+const workspace = Astro.params.workspace ?? 'local';
+let resolved;
+try {
+  resolved = await resolveExistingAddress(workspace, Astro.params.path);
+} catch {
+  Astro.response.status = 404;
+  return Astro.redirect('/404');
+}
+const descriptor = await describeArtifact(resolved.absolutePath, resolved.address);
+const entries = descriptor.kind === 'directory' ? await listDirectory(resolved.absolutePath, resolved.address) : undefined;
+const markdownSource = descriptor.kind === 'markdown' ? await readText(resolved.absolutePath) : undefined;
+const markdownHtml = markdownSource === undefined ? undefined : renderMarkdown(markdownSource);
+const fileStat = await stat(resolved.absolutePath);
+const cwdAddress = descriptor.kind === 'directory'
+  ? resolved.address
+  : { workspace: resolved.address.workspace, segments: resolved.address.segments.slice(0, -1) };
+---
+<ShellLayout
+  title={descriptor.name}
+  workspace={workspace}
+  currentRoute={descriptor.route}
+  cwdAddress={cwdAddress}
+  workspaceGeneration={workspaceGeneration()}
+  breadcrumbs={breadcrumbs(resolved.address)}
+>
+  <ArtifactPage
+    descriptor={descriptor}
+    entries={entries}
+    markdownHtml={markdownHtml}
+    mtimeMs={fileStat.mtimeMs}
+  />
+</ShellLayout>

@@ -1,0 +1,14 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor }
+const { descriptor } = Astro.props;
+---
+<section class="artifact-page unknown-page">
+  <header class="artifact-header"><div><div class="artifact-kicker">Binary or unsupported artifact</div><h1>{descriptor.name}</h1></div></header>
+  <dl class="metadata-list">
+    <div><dt>Type</dt><dd>{descriptor.mime}</dd></div>
+    <div><dt>Size</dt><dd>{descriptor.size.toLocaleString()} bytes</dd></div>
+    <div><dt>Modified</dt><dd>{new Date(descriptor.modifiedAt).toLocaleString()}</dd></div>
+  </dl>
+  <p>Use the system application for full editing. This shell will not invent a fake editor for a format it cannot round-trip safely.</p>
+</section>

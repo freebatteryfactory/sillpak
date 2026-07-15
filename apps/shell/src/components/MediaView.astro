@@ -1,0 +1,11 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly sourceUrl: string }
+const { descriptor, sourceUrl } = Astro.props;
+---
+<section class="artifact-page media-page">
+  <header class="artifact-header"><div><div class="artifact-kicker">{descriptor.kind}</div><h1>{descriptor.name}</h1></div></header>
+  {descriptor.kind === 'image' && <img class="image-preview" src={sourceUrl} alt={descriptor.name} />}
+  {descriptor.kind === 'audio' && <audio class="media-player" src={sourceUrl} controls></audio>}
+  {descriptor.kind === 'video' && <video class="media-player" src={sourceUrl} controls></video>}
+</section>

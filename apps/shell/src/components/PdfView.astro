@@ -1,0 +1,16 @@
+---
+import type { ArtifactDescriptor } from '@sillpak/contracts';
+interface Props { readonly descriptor: ArtifactDescriptor; readonly sourceUrl: string }
+const { descriptor, sourceUrl } = Astro.props;
+---
+<section class="artifact-page pdf-page" data-pdf-view data-source-url={sourceUrl}>
+  <header class="artifact-header">
+    <div><div class="artifact-kicker">PDF</div><h1>{descriptor.name}</h1></div>
+    <div class="artifact-actions">
+      <button type="button" class="text-command" data-pdf-previous>Previous</button>
+      <span class="instrument-status" data-pdf-page-label>page 1</span>
+      <button type="button" class="text-command" data-pdf-next>Next</button>
+    </div>
+  </header>
+  <div class="pdf-surface" data-pdf-surface data-czap-morph-opaque></div>
+</section>

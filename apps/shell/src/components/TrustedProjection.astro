@@ -1,0 +1,6 @@
+---
+import type { SafeProjectionHtml } from '../lib/server/markdown.js';
+interface Props { readonly html: SafeProjectionHtml }
+const { html } = Astro.props;
+---
+<div class="formatted-document" set:html={html}></div>
