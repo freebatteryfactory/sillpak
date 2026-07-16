@@ -1,6 +1,10 @@
-import * as pty from 'node-pty';
+import { createRequire } from 'node:module';
 import type { IPty } from 'node-pty';
 import { isPtyHostCommand, type PtyHostCommand, type PtyHostEvent, type ResolvedTerminalLaunch } from './protocol.js';
+
+// Node's ESM loader cannot resolve an asar-unpacked native module; Electron's
+// CommonJS require can, so node-pty is loaded through require.
+const pty = createRequire(import.meta.url)('node-pty') as typeof import('node-pty');
 
 interface PtyRecord {
   readonly child: IPty;

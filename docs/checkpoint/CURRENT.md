@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-16
 **Branch:** `main`
-**State:** Phase 1 installed-application proof complete on Windows 11, now backed by a deterministic regression lane that re-proves the security matrix against the production runtime module. The production runtime path has been exercised **inside a real Electron main process** (non-dev, no Vite): the window loads the authenticated origin, the loopback security boundary answers 401/421, built client assets serve with correct MIME types, and a ConPTY shell spawns under the Electron process tree. CI is green on Windows, macOS, and Linux (run 29496773793 at `b132ebf`). The fully packaged (electron-builder) app is code-ready but not yet observed green — see the packaging note below.
+**State:** Phase 1 installed-application proof complete on Windows 11, now backed by a deterministic regression lane. The production runtime path is verified inside a real non-dev Electron main process, **and the fully packaged electron-builder app (`SillPak.exe`) now launches and runs green**: it renders the real workspace page, enforces the loopback security boundary (401/421), serves built client assets, and spawns a live ConPTY shell from the packaged utility process. CI is green on Windows, macOS, and Linux (run 29496773793 at `b132ebf`).
 
 ## Verified in this checkpoint (Windows 11, dev mode)
 
@@ -34,6 +34,13 @@
 - a `powershell.exe` shell spawned under the Electron process tree via the PTY utility process
 - the end-of-session polish means input after a shell exits shows "This terminal session has ended. Use Restart…" instead of a raw `[host:session-not-found]`
 
+## Verified in the packaged electron-builder app (`SillPak.exe`, Windows 11)
+
+- `electron-builder --dir` produces a runnable `SillPak.exe`; launched, it completed the full boot trace (`ready → workspace-initialized → broker-started → runtime-ready → cookie-installed → workspace-watched → window-created`)
+- the window title is the real rendered page (`workspace · SillPak`), not an error page
+- live probes against the packaged app's bound port: unauthenticated `/w/local` → 401, foreign `Host` → 421, `/_astro/*.css` → 200 `text/css`
+- a `powershell.exe` shell spawned under the packaged process tree — `node-pty` loaded from `app.asar.unpacked` through Electron's `require`
+
 ## Corrections made during Phase 1
 
 - Electron sandboxed preload scripts must be single-file CommonJS; the preload is now self-contained, built by `apps/desktop/tsconfig.preload.json`, and a repository law asserts its IPC channel names mirror `protocol.ts`
@@ -46,14 +53,16 @@
 - the node adapter runs in **middleware mode**, so the built client assets in `dist/client` are the wrapping server's responsibility; `astro-runtime.ts` now serves them (correct MIME, immutable caching for `/_astro/`, contained to the client root). Without this the first production launch loaded a page with no CSS or client JS, so the terminal never booted
 - `astro-runtime.ts` resolves the shell build from `app.asar.unpacked` when packaged, because Node's ESM `import()` cannot load from inside an asar archive; `electron-builder.yml` unpacks `apps/shell/dist/**` accordingly
 - `electron-builder.yml` pins `electronVersion` (pnpm hides electron under `apps/desktop`) and `package.json` gained an `author`, both required by electron-builder
+- the packaged app included no `node_modules` at first: electron-builder collects production dependencies from the packaged (root) `package.json`, but the native modules were declared only in `apps/desktop/package.json`. `@parcel/watcher` and `node-pty` are now root dependencies so they and their platform-native optional packages are collected; `asarUnpack` widened to `**/node_modules/@parcel/**`
+- native modules (`@parcel/watcher`, `node-pty`) are loaded through `createRequire(import.meta.url)` instead of a bare `import`, because Node's ESM loader cannot resolve an asar-unpacked package while Electron's CommonJS `require` can
+- the Astro SSR server bundle was not self-contained — its chunks imported `@czap/*` and `markdown-it` at render time, which Node's ESM loader could not resolve from inside the asar (page routes returned 500). `vite.ssr.noExternal` is now `true`, so the packaged server bundles every dependency and needs zero runtime `node_modules`
 
 ## Packaging note (electron-builder)
 
-The `electron-builder --dir` build succeeds and produces `SillPak.exe`. Confirming the packaged app runs green is currently blocked by a Windows environmental issue on this machine, not a code defect: Windows Defender real-time protection holds a directory handle on the freshly code-signed 150 MB `artifacts/` output, which then poisons electron-builder's project-directory detection on the next run (`ENOENT ... app.asar.unpacked/electron-builder.yml`). The lock clears on reboot or once Defender finishes scanning. The packaging inputs the build needs — `electronVersion`, `author`, asar-unpacked shell build, `.asar.unpacked` path resolution, and a persisted `startup-error.log` / `SILLPAK_BOOT_TRACE` for post-mortems — are all in place. Re-running `pnpm package:desktop` from a clean `artifacts/` is the remaining step.
+`pnpm package:desktop` (or `electron-builder --dir`) builds a runnable `SillPak.exe`. One environmental caveat on this machine: Windows Defender can hold a directory handle on the freshly code-signed `artifacts/` output, which poisons electron-builder's project-directory detection on the *next* run (`ENOENT ... app.asar.unpacked/electron-builder.yml`). If that happens, build into a clean output directory (`-c.directories.output=<fresh dir>`) or wait for Defender to settle; it is not a code defect.
 
 ## Known unverified areas
 
-- fully packaged (electron-builder) app behavior: cookie installation, permissions, and Host/Origin checks in the built `.exe` (blocked as above; the non-dev Electron runtime itself is verified)
 - workspace switching does not rebind an existing session (interactive flow not yet exercised)
 - old process-generation events ignored after restart (code-level law; event-level runtime assertion not captured)
 - output high-water behavior under sustained load
@@ -64,4 +73,4 @@ The `electron-builder --dir` build succeeds and produces `SillPak.exe`. Confirmi
 
 ## One next action
 
-From a clean `artifacts/` (reboot or after Defender settles), run `pnpm package:desktop`, launch the packaged `SillPak.exe`, and confirm cookie installation and the authenticated origin inside it; then exercise workspace switching. After that, Phase 2 LiteShip projection work begins. The non-dev Electron runtime, the security matrix through `astro-runtime.ts`, and runtime `SILLPAK_*` stripping are already proven (the latter two automated in `tests/regression/`).
+Exercise workspace switching in the running app (dev, non-dev, or packaged): with a command running in workspace A, choose workspace B and confirm the app warns, explicitly stops the prior generation's terminal, and never transplants the existing PTY into the new root. That closes the last named Phase 1 gap; then Phase 2 LiteShip projection work begins (which is also where an IDE-style directory tree in `NavigatorRail` belongs). The non-dev and packaged Electron runtimes, the security matrix through `astro-runtime.ts`, and runtime `SILLPAK_*` stripping are already proven (the latter two automated in `tests/regression/`).

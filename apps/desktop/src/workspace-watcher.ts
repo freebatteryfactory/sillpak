@@ -1,9 +1,14 @@
-import * as watcher from '@parcel/watcher';
+import { createRequire } from 'node:module';
 import { relative, resolve } from 'node:path';
+import type { AsyncSubscription } from '@parcel/watcher';
 import type { WorkspacePathChange, WorkspaceWatcherEvent } from '@sillpak/contracts';
 
+// Node's ESM loader cannot resolve an asar-unpacked native module; Electron's
+// CommonJS require can, so this native dependency is loaded through require.
+const watcher = createRequire(import.meta.url)('@parcel/watcher') as typeof import('@parcel/watcher');
+
 export class WorkspaceWatcher {
-  private subscription: watcher.AsyncSubscription | undefined;
+  private subscription: AsyncSubscription | undefined;
   private root = '';
   private generation = 0;
   private sequence = 0;

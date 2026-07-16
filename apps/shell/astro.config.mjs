@@ -22,7 +22,10 @@ export default defineConfig({
   server: { host: '127.0.0.1', port: Number(process.env.SILLPAK_DEV_PORT ?? '4321') },
   vite: {
     ssr: {
-      noExternal: ['mammoth', 'exceljs'],
+      // Bundle every server dependency so the packaged desktop app ships a
+      // self-contained SSR server with no runtime node_modules to resolve
+      // (Node's ESM loader cannot resolve packages from inside an asar).
+      noExternal: true,
     },
   },
 });

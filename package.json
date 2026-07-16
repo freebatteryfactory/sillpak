@@ -29,6 +29,10 @@
     "qa:gauntlet": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality check",
     "qa:audit": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality run audit"
   },
+  "dependencies": {
+    "@parcel/watcher": "2.5.6",
+    "node-pty": "1.1.0"
+  },
   "devDependencies": {
     "@types/node": "22.19.15",
     "electron-builder": "26.0.12",

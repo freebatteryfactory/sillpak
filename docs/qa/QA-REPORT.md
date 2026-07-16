@@ -30,7 +30,14 @@ Not yet verified: production `astro-runtime.ts` path, packaged app behavior, wor
 - live probes against the bound loopback port: unauthenticated 401, foreign `Host` 421, `/_astro/*.css` 200 `text/css`
 - defect found and fixed: in middleware mode the node adapter does not serve `dist/client`; the first non-dev launch had no CSS/JS (and thus no terminal). `astro-runtime.ts` now serves client assets with correct MIME and containment; two regression assertions guard it
 - terminal end-of-session polish: writes to an ended session are answered in the broker with a friendly "session has ended — Restart" notice instead of forwarding a raw `session-not-found` to the renderer; a repository law guards this
-- `electron-builder --dir` produces `SillPak.exe`; confirming the packaged app runs green is blocked by a Windows Defender directory-handle lock on the signed `artifacts/` output that poisons the next build's project detection (environmental, clears on reboot). Packaging inputs (`electronVersion`, `author`, asar-unpacked shell, `.asar.unpacked` resolution, persisted startup error log) are all in place
+## Packaged electron-builder app (Windows 11)
+
+- `electron-builder --dir` produces a runnable `SillPak.exe` that launches green: full boot trace, real rendered page (`workspace · SillPak`), live security (401/421), `/_astro/*.css` 200 `text/css`, and a `powershell.exe` shell spawned under the packaged process tree (node-pty loaded from `app.asar.unpacked` via Electron `require`)
+- three packaging defects found and fixed:
+  1. electron-builder collects production deps from the packaged (root) `package.json`; the native modules were declared only in `apps/desktop/package.json`, so the first package shipped an empty `node_modules`. `@parcel/watcher` and `node-pty` are now root dependencies; `asarUnpack` widened to `**/node_modules/@parcel/**`
+  2. Node's ESM loader cannot resolve an asar-unpacked package; `@parcel/watcher` and `node-pty` are now loaded via `createRequire` (Electron's CommonJS require is asar-aware)
+  3. the Astro SSR server bundle imported `@czap/*` and `markdown-it` at render time (page routes 500 in the packaged app); `vite.ssr.noExternal` is now `true` so the server bundle is fully self-contained
+- environmental caveat: Windows Defender can hold a handle on the signed `artifacts/` output and poison the next build's project detection; build into a fresh output dir if it recurs
 
 ## Executed
 

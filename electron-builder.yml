@@ -12,11 +12,13 @@ files:
   - apps/desktop/package.json
   - apps/shell/dist/**
   - apps/shell/package.json
-  - node_modules/**
+# node-pty and @parcel/watcher are the only external runtime modules; they are
+# declared in the root package.json so electron-builder collects them and their
+# platform-native optional dependencies from the pnpm store.
 asar: true
 asarUnpack:
   - '**/node_modules/node-pty/**'
-  - '**/node_modules/@parcel/watcher/**'
+  - '**/node_modules/@parcel/**'
   # The Astro server is loaded with a real ESM import(), which cannot resolve
   # reliably from inside the asar archive; keep the shell build as plain files.
   - 'apps/shell/dist/**'
