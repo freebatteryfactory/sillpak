@@ -4,11 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 
-const protocol = await import('../apps/desktop/src/protocol.ts');
-const state = await import('../apps/shell/src/lib/state/shell-state.ts');
-const range = await import('../apps/shell/src/lib/server/byte-range.ts');
-const requestAuth = await import('../apps/shell/src/lib/server/request-auth.ts');
-const localOrigin = await import('../apps/desktop/src/local-origin.ts');
+const protocol = await import('../../apps/desktop/src/protocol.ts');
+const state = await import('../../apps/shell/src/lib/state/shell-state.ts');
+const range = await import('../../apps/shell/src/lib/server/byte-range.ts');
+const requestAuth = await import('../../apps/shell/src/lib/server/request-auth.ts');
+const localOrigin = await import('../../apps/desktop/src/local-origin.ts');
 
 const openRequest = {
   sessionId: 'primary:1',
@@ -88,7 +88,7 @@ test('workspace path resolver refuses cwd and symlink escape', async (t) => {
   const nested = join(root, 'nested');
   await mkdir(nested);
   await writeFile(join(nested, 'note.txt'), 'hello');
-  const { assertWorkspaceDirectory, resolveWorkspaceArtifact } = await import('../apps/desktop/src/workspace-path.ts');
+  const { assertWorkspaceDirectory, resolveWorkspaceArtifact } = await import('../../apps/desktop/src/workspace-path.ts');
   assert.equal(await assertWorkspaceDirectory(root, nested), await realpath(nested));
   assert.equal(
     await resolveWorkspaceArtifact(root, { workspace: 'local', segments: ['nested', 'note.txt'] }),
@@ -188,7 +188,7 @@ test('local request security refuses rebinding and unauthenticated workspace acc
 });
 
 test('viewer capability claims match the shipping surfaces', async () => {
-  const { capabilitiesFor } = await import('../apps/shell/src/lib/server/artifact-capabilities.ts');
+  const { capabilitiesFor } = await import('../../apps/shell/src/lib/server/artifact-capabilities.ts');
   const csv = capabilitiesFor('spreadsheet', '.csv');
   const pdf = capabilitiesFor('pdf', '.pdf');
   assert.equal(csv.edit, 'none');

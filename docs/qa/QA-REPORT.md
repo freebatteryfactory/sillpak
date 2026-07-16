@@ -14,6 +14,15 @@
 
 Not yet verified: production `astro-runtime.ts` path, packaged app behavior, workspace-switch rebind refusal, runtime `SILLPAK_*` stripping proof, process-tree cleanup, cross-platform parity. See `docs/checkpoint/CURRENT.md`.
 
+## Regression lane and CI (Windows 11, same date, after Phase 1)
+
+- tests reorganized into `tests/laws/`, `tests/unit/`, `tests/regression/`; `pnpm test` runs laws + unit, `pnpm run test:regression` runs installed-behavior regressions against built artifacts
+- `tests/regression/production-security-matrix.test.mjs` boots the real `apps/desktop/src/astro-runtime.ts` serving `apps/shell/dist/server/index.mjs` with a temporary workspace and passes 18 cases: cookie/bearer 200, missing/wrong credentials 401, non-exact Host 421, cross-site fetch metadata 403, missing/foreign Origin 403, non-JSON mutation 415, encoded traversal 404, raw read 200, byte range 206, directory projection 200, artifact page 200, malformed save 400, valid save 200, stale save 409
+- defect found and fixed by that test's first run: `astro-runtime.ts` resolved `dist/server/entry.mjs`, but Astro 7's node middleware adapter emits `dist/server/index.mjs`; the production launch path could never have booted
+- `tests/regression/pty-environment.test.mjs` proves the host-owned profile strips `SILLPAK_*` and that a real PTY child (ConPTY) observes zero `SILLPAK_*` variables at runtime
+- `docs/qa/REGRESSION.md` maps every checkpoint claim to its guard or names it operator-only
+- `.github/workflows/ci.yml` added: Windows, macOS, and Linux matrix running frozen install, `pnpm check`, `pnpm build`, and the regression lane; first CI runs were pending when this section was written — cross-platform claims wait for green runs
+
 ## Executed
 
 - Git bundle cloned successfully from the original scaffold

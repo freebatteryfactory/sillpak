@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-16
 **Branch:** `main`
-**State:** Phase 1 installed-application proof complete on Windows 11 in development mode. Packaged application and cross-platform behavior remain unverified.
+**State:** Phase 1 installed-application proof complete on Windows 11, now backed by a deterministic regression lane that re-proves the security matrix against the production runtime module. Packaged Electron behavior remains unverified. Cross-platform CI is defined; its first runs are pending.
 
 ## Verified in this checkpoint (Windows 11, dev mode)
 
@@ -18,6 +18,12 @@
 - hard reload during a streaming command: output kept streaming after reload (operator-observed; host process table confirmed the same PTY host and shell survived renderer loss)
 - explicit Restart produced a fresh shell and explicit Stop ended the session (operator-observed; host process table confirmed no shell child after Stop)
 
+## Verified by the regression lane (added after Phase 1)
+
+- the production runtime module (`apps/desktop/src/astro-runtime.ts`) boots the built shell (`apps/shell/dist/server/index.mjs`) and the full security matrix passes through it — auth 200/401, Host 421, cross-site 403, Origin 403, content-type 415, traversal 404, byte range 206, save 200/400/409 (`tests/regression/production-security-matrix.test.mjs`)
+- a real PTY child (ConPTY on Windows) observes zero `SILLPAK_*` environment variables at runtime (`tests/regression/pty-environment.test.mjs`)
+- `docs/qa/REGRESSION.md` maps every checkpoint claim to its deterministic guard or names it operator-only
+
 ## Corrections made during Phase 1
 
 - Electron sandboxed preload scripts must be single-file CommonJS; the preload is now self-contained, built by `apps/desktop/tsconfig.preload.json`, and a repository law asserts its IPC channel names mirror `protocol.ts`
@@ -26,20 +32,20 @@
 - `scripts/qa-handoff.mjs` no longer shells out to npm (Windows ENOENT); it resolves the workspace TypeScript directly
 - root `qa:audit` uses `pnpm run audit` because `audit` is shadowed by the pnpm built-in
 - `packages/quality/src/audit.ts` walks up to the workspace root instead of assuming `process.cwd()`
+- `astro-runtime.ts` pointed at `dist/server/entry.mjs`, but Astro 7's node adapter in middleware mode emits `dist/server/index.mjs` — the production launch path could never have booted; the new regression test caught this on its first run
 
 ## Known unverified areas
 
-- production Astro runtime path inside Electron (`astro-runtime.ts`): the smoke matrix ran against the Vite dev server, not the standalone adapter
+- the production runtime *inside Electron*: the regression lane proves `astro-runtime.ts` and the built server in plain Node, not hosted by the Electron main process
 - packaged Electron behavior: cookie installation, permissions, and Host/Origin checks in a built app
 - workspace switching does not rebind an existing session (interactive flow not yet exercised)
-- runtime proof that PTY child environments contain no `SILLPAK_*` values
 - old process-generation events ignored after restart (code-level law; event-level runtime assertion not captured)
 - output high-water behavior under sustained load
 - whole-process-tree cleanup
 - microphone and Whisper behavior
-- macOS and Linux runtime parity
+- macOS and Linux runtime parity (CI proves install, check, build, and the regression lane per OS once its first runs are green; it never launches Electron)
 - terminal utility-process crash behavior
 
 ## One next action
 
-Exercise the production runtime path: build and launch the packaged (or at least non-dev) Electron app, prove the same security matrix through `astro-runtime.ts`, verify `SILLPAK_*` stripping from a live PTY (`Get-ChildItem env:SILLPAK*` in the SillPak terminal), and exercise workspace switching, before Phase 2 LiteShip projection work.
+Build and launch the packaged (or at least non-dev) Electron app, prove cookie installation and the authenticated origin inside it, and exercise workspace switching, before Phase 2 LiteShip projection work. The security matrix through `astro-runtime.ts` and runtime `SILLPAK_*` stripping are now automated in `tests/regression/`.

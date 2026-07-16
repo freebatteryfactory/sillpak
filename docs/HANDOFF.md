@@ -25,12 +25,14 @@
 - generic external adapter boundary
 - upstream LiteShip Effect migration tracking at `freebatteryfactory/LiteShip#153`
 - downstream QA and Gauntlet scaffolding
+- deterministic regression lane (`tests/regression/`) proving the production runtime module, the security matrix, and runtime `SILLPAK_*` stripping
+- Windows, macOS, and Linux CI matrix (`.github/workflows/ci.yml`)
+- checkpoint-claim-to-guard map (`docs/qa/REGRESSION.md`)
 
 ## What has not been claimed
 
-- production Astro runtime inside Electron and packaged-application behavior
+- production Astro runtime hosted inside Electron and packaged-application behavior
 - workspace-switch session rebind refusal at runtime
-- runtime `SILLPAK_*` stripping proof in a live PTY child
 - complete output backpressure
 - process-tree cleanup proof
 - packaged microphone permission behavior
@@ -48,7 +50,7 @@
 
 Follow `docs/checkpoint/CURRENT.md` exactly.
 
-Phase 1 (install, build, launch, local-auth matrix, terminal reattachment) is verified on Windows 11 in dev mode. The next task is the production runtime and packaged-application proof described in the checkpoint's one next action.
+Phase 1 (install, build, launch, local-auth matrix, terminal reattachment) is verified on Windows 11. The security matrix now re-proves itself against the production runtime module on every `pnpm run test:regression`; see `docs/qa/REGRESSION.md` for the claim-to-guard map. The next task is the packaged-application proof described in the checkpoint's one next action.
 
 Browser implementation begins from:
 

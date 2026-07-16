@@ -23,7 +23,8 @@
     "qa:handoff": "node scripts/qa-handoff.mjs",
     "typecheck": "pnpm --filter @sillpak/contracts build && pnpm -r typecheck",
     "typecheck:scaffold": "tsc -p qa/tsconfig.scaffold.json",
-    "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
+    "test": "node --experimental-strip-types --test tests/laws/*.test.mjs tests/unit/*.test.mjs",
+    "test:regression": "node --experimental-strip-types --test tests/regression/*.test.mjs",
     "qa:gauntlet": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality check",
     "qa:audit": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality run audit"
   },

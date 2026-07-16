@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+const read = (path) => readFileSync(new URL(`../../${path}`, import.meta.url), 'utf8');
 
 const standaloneSentence = 'SillPak works independently and exposes optional adapters for external context, control, execution, and evidence systems.';
 

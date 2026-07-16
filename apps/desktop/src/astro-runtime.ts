@@ -33,7 +33,8 @@ export async function startAstroRuntime(
   process.env.SILLPAK_SESSION_TOKEN = security.sessionToken;
   process.env.ASTRO_NODE_AUTOSTART = 'disabled';
 
-  const entry = resolve(appRoot, 'apps/shell/dist/server/entry.mjs');
+  // Astro 7's node adapter in middleware mode emits dist/server/index.mjs.
+  const entry = resolve(appRoot, 'apps/shell/dist/server/index.mjs');
   const module = await import(pathToFileURL(entry).href) as { readonly handler: AstroNodeHandler };
   let expectedHost = '';
   const server: Server = createServer((request, response) => {
