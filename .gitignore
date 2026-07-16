@@ -8,5 +8,9 @@ artifacts/
 *.tsbuildinfo
 .DS_Store
 Thumbs.db
-apps/shell/.env
-apps/desktop/.env
+.env
+.env.*
+!.env.example
+pnpm-debug.log*
+.idea/
+.vscode/
