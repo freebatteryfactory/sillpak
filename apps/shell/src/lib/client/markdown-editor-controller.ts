@@ -102,8 +102,8 @@ export function bootMarkdownEditors(): void {
       let richApi: RichApi | undefined;
       let sourceEditor: EditorView | undefined;
       let sourceApi: SourceApi | undefined;
-      let unregisterRichText = () => undefined;
-      let unregisterHistory = () => undefined;
+      let unregisterRichText: () => void = () => undefined;
+      let unregisterHistory: () => void = () => undefined;
 
       const readSource = async (): Promise<string> => {
         if (sourceCache !== undefined) return sourceCache;

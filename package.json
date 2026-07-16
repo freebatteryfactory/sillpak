@@ -21,11 +21,11 @@
     "check": "pnpm run qa:architecture && pnpm run qa:handoff && pnpm run test && pnpm run typecheck && pnpm run qa:gauntlet && pnpm run qa:audit",
     "qa:architecture": "node scripts/qa-architecture.mjs",
     "qa:handoff": "node scripts/qa-handoff.mjs",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm --filter @sillpak/contracts build && pnpm -r typecheck",
     "typecheck:scaffold": "tsc -p qa/tsconfig.scaffold.json",
     "test": "node --experimental-strip-types --test tests/**/*.test.mjs",
     "qa:gauntlet": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality check",
-    "qa:audit": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality audit"
+    "qa:audit": "pnpm --filter @sillpak/quality build && pnpm --filter @sillpak/quality run audit"
   },
   "devDependencies": {
     "@types/node": "22.19.15",

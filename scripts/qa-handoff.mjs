@@ -1,5 +1,4 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { dirname, join, relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -7,8 +6,9 @@ async function loadTypeScript() {
   try {
     return await import('typescript');
   } catch {
-    const globalRoot = execFileSync('npm', ['root', '-g'], { encoding: 'utf8' }).trim();
-    return import(pathToFileURL(join(globalRoot, 'typescript/lib/typescript.js')).href);
+    const workspaceCopy = join(process.cwd(), 'node_modules/typescript/lib/typescript.js');
+    if (existsSync(workspaceCopy)) return import(pathToFileURL(workspaceCopy).href);
+    throw new Error('handoff QA requires the workspace TypeScript dependency; run pnpm install first');
   }
 }
 

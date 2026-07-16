@@ -28,12 +28,9 @@
 
 ## What has not been claimed
 
-- successful dependency installation
-- complete vendor type checking
-- Astro production build
-- Electron launch
-- node-pty or Parcel Watcher native rebuild
-- hard-reload PTY survival in a real Electron process
+- production Astro runtime inside Electron and packaged-application behavior
+- workspace-switch session rebind refusal at runtime
+- runtime `SILLPAK_*` stripping proof in a live PTY child
 - complete output backpressure
 - process-tree cleanup proof
 - packaged microphone permission behavior
@@ -51,7 +48,7 @@
 
 Follow `docs/checkpoint/CURRENT.md` exactly.
 
-Install the exact dependency graph, run the full build and typecheck, launch Electron against `examples/workspace`, then verify the local-auth and terminal-reattachment paths before adding features.
+Phase 1 (install, build, launch, local-auth matrix, terminal reattachment) is verified on Windows 11 in dev mode. The next task is the production runtime and packaged-application proof described in the checkpoint's one next action.
 
 Browser implementation begins from:
 

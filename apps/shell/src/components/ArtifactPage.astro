@@ -12,8 +12,8 @@ import type { SafeProjectionHtml } from '../lib/server/markdown.js';
 
 interface Props {
   readonly descriptor: ArtifactDescriptor;
-  readonly entries?: readonly DirectoryEntry[];
-  readonly markdownHtml?: SafeProjectionHtml;
+  readonly entries?: readonly DirectoryEntry[] | undefined;
+  readonly markdownHtml?: SafeProjectionHtml | undefined;
   readonly mtimeMs?: number;
 }
 const { descriptor, entries = [], markdownHtml, mtimeMs = 0 } = Astro.props;

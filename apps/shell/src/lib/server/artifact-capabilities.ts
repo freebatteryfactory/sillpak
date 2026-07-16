@@ -4,7 +4,7 @@ import type { ArtifactCapabilities, ArtifactKind } from '@sillpak/contracts';
  * The capability declaration is product truth, not a wish list. Add a capability
  * only after the corresponding surface and round-trip behavior ship.
  */
-export function capabilitiesFor(kind: ArtifactKind, extension: string): ArtifactCapabilities {
+export function capabilitiesFor(kind: ArtifactKind): ArtifactCapabilities {
   const edit = kind === 'markdown'
     ? 'markdown'
     : kind === 'code' || kind === 'text' || kind === 'json'

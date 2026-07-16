@@ -77,7 +77,7 @@ export async function describeArtifact(absolutePath: string, address: ArtifactAd
     modifiedAt: info.mtime.toISOString(),
     route: routeFor(address),
     ...(info.isDirectory() ? {} : { rawUrl: apiPath('/api/raw', address) }),
-    capabilities: capabilitiesFor(kind, extension),
+    capabilities: capabilitiesFor(kind),
   };
 }
 

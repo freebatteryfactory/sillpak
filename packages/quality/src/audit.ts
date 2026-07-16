@@ -1,7 +1,13 @@
 import { runAuditPasses, type DevopsProfile } from '@czap/audit';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const repoRoot = resolve(process.cwd());
+let repoRoot = resolve(process.cwd());
+while (!existsSync(resolve(repoRoot, 'pnpm-workspace.yaml'))) {
+  const parent = resolve(repoRoot, '..');
+  if (parent === repoRoot) throw new Error('workspace root with pnpm-workspace.yaml not found');
+  repoRoot = parent;
+}
 const profile: Partial<DevopsProfile> = {
   repoRoot,
   internalPackagePrefix: '@sillpak/',

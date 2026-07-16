@@ -2,7 +2,8 @@ appId: dev.freebatteryfactory.sillpak
 productName: SillPak
 directories:
   output: artifacts
-npmRebuild: true
+# node-pty and @parcel/watcher ship N-API prebuilds; rebuilding would require a local C++ toolchain.
+npmRebuild: false
 files:
   - package.json
   - apps/desktop/dist/**

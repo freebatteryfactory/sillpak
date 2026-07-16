@@ -1,8 +1,15 @@
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { randomUUID } from 'node:crypto';
 
-const shellOrigin = 'http://127.0.0.1:4321';
+const contractsBuild = spawnSync('pnpm', ['--filter', '@sillpak/contracts', 'build'], {
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+});
+if (contractsBuild.status !== 0) process.exit(contractsBuild.status ?? 1);
+
+const shellPort = process.env.SILLPAK_DEV_PORT ?? '4321';
+const shellOrigin = `http://127.0.0.1:${shellPort}`;
 const shellUrl = `${shellOrigin}/w/local`;
 const workspaceRoot = process.env.SILLPAK_WORKSPACE_ROOT ?? resolve(process.cwd(), 'examples/workspace');
 const controlToken = process.env.SILLPAK_CONTROL_TOKEN ?? randomUUID();
@@ -12,7 +19,7 @@ const commonEnv = {
   SILLPAK_WORKSPACE_ROOT: workspaceRoot,
   SILLPAK_CONTROL_TOKEN: controlToken,
   SILLPAK_SESSION_TOKEN: sessionToken,
-  SILLPAK_EXPECTED_HOST: '127.0.0.1:4321',
+  SILLPAK_EXPECTED_HOST: `127.0.0.1:${shellPort}`,
   SILLPAK_ALLOWED_ORIGIN: shellOrigin,
 };
 const childOptions = { stdio: 'inherit', shell: process.platform === 'win32', env: commonEnv };
@@ -27,7 +34,7 @@ async function waitForShell() {
       const response = await fetch(shellUrl, {
         redirect: 'manual',
         headers: {
-          Host: '127.0.0.1:4321',
+          Host: `127.0.0.1:${shellPort}`,
           Cookie: `sillpak_session=${encodeURIComponent(sessionToken)}`,
         },
       });

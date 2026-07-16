@@ -1,7 +1,18 @@
 # QA report
 
 **Date:** 2026-07-16
-**Scope:** SillPak source refactor, public-canon correction, and agent-browser documentation integration
+**Scope:** SillPak source refactor, public-canon correction, agent-browser documentation integration, and Phase 1 installed-application proof
+
+## Phase 1 execution (Windows 11, dev mode)
+
+- `pnpm install` → lockfile generated; native modules load from N-API prebuilds (rebuild step removed; see checkpoint)
+- `pnpm check` → green end to end: architecture QA (150 files), handoff QA, 15 law tests, workspace typecheck, Gauntlet, audit (0 errors)
+- Electron launched against `examples/workspace`; `/w/local` loads through the authenticated origin
+- 17-case security smoke matrix passed (auth, Host, Origin, cross-site, content-type, traversal, stale-write); foreign Host refusal is layered in dev (Vite 403 first, SillPak 421 for hosts Vite allows)
+- PTY spawned via utility process; streaming output survived a hard renderer reload; Restart and Stop remained explicit (operator-observed, host process table corroborated)
+- fixes this pass: single-file CommonJS sandboxed preload plus channel-mirror law test, contracts built before dependents, configurable dev port, Windows-safe qa-handoff, unshadowed qa:audit, workspace-root-aware audit profile
+
+Not yet verified: production `astro-runtime.ts` path, packaged app behavior, workspace-switch rebind refusal, runtime `SILLPAK_*` stripping proof, process-tree cleanup, cross-platform parity. See `docs/checkpoint/CURRENT.md`.
 
 ## Executed
 

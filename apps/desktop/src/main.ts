@@ -73,7 +73,8 @@ function installPermissions(): void {
     let requestingOrigin = '';
     try { requestingOrigin = new URL(details.requestingUrl).origin; }
     catch { requestingOrigin = ''; }
-    const audioOnly = !details.mediaTypes || details.mediaTypes.every((type) => type === 'audio');
+    const mediaTypes = 'mediaTypes' in details ? details.mediaTypes : undefined;
+    const audioOnly = !mediaTypes || mediaTypes.every((type) => type === 'audio');
     callback(permission === 'media' && requestingOrigin === shellOrigin && audioOnly);
   });
 }
@@ -88,7 +89,8 @@ function watchWorkspace(): Promise<void> {
 }
 
 async function createWindow(): Promise<void> {
-  const preload = fileURLToPath(new URL('./preload.js', import.meta.url));
+  // Sandboxed preload scripts must be CommonJS; tsconfig.preload.json owns this build.
+  const preload = fileURLToPath(new URL('./preload-cjs/preload.js', import.meta.url));
   const window = new BrowserWindow({
     width: 1500,
     height: 980,

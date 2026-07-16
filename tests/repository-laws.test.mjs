@@ -30,6 +30,18 @@ test('renderer cleanup detaches rather than killing the terminal', () => {
   assert.doesNotMatch(source, /bridge\?\.kill\(sessionId\).*terminal\.dispose/s);
 });
 
+test('the sandboxed preload mirrors the protocol channel contract', () => {
+  const extract = (path) => {
+    const match = read(path).match(/channels = \{([^}]+)\}/s);
+    assert.ok(match, `${path} declares a channels object`);
+    return [...match[1].matchAll(/(\w+): '([^']+)'/g)].map(([, key, value]) => `${key}=${value}`).sort();
+  };
+  const protocolChannels = extract('apps/desktop/src/protocol.ts');
+  const preloadChannels = extract('apps/desktop/src/preload.ts');
+  assert.ok(protocolChannels.length >= 6);
+  assert.deepEqual(preloadChannels, protocolChannels);
+});
+
 test('workspace switching is an explicit terminal stop boundary', () => {
   assert.match(read('apps/shell/src/lib/client/native-bridge-controller.ts'), /Changing workspace stops the current terminal session/);
   assert.match(read('apps/desktop/src/main.ts'), /broker\.closeWorkspace\(previous\.workspaceId, previous\.generation\)/);

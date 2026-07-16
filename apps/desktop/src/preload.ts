@@ -7,7 +7,17 @@ import type {
   WorkspaceSnapshot,
   WorkspaceWatcherEvent,
 } from '@sillpak/contracts';
-import { channels } from './protocol.js';
+// Sandboxed preload scripts cannot require local modules, so the preload stays
+// self-contained. These channel names must mirror `channels` in protocol.ts;
+// tests/repository-laws.test.mjs asserts the two stay in agreement.
+const channels = {
+  terminalCommand: 'sillpak:terminal-command',
+  terminalEvent: 'sillpak:terminal-event',
+  chooseWorkspace: 'sillpak:choose-workspace',
+  revealArtifact: 'sillpak:reveal-artifact',
+  openArtifact: 'sillpak:open-artifact',
+  workspaceChanged: 'sillpak:workspace-changed',
+} as const;
 
 const terminal: TerminalBridge = {
   open: (request: TerminalOpenRequest) => ipcRenderer.invoke(channels.terminalCommand, { type: 'open', request }),
