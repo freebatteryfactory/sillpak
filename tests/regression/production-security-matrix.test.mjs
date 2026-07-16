@@ -2,7 +2,7 @@ import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { request as httpRequest } from 'node:http';
 import { existsSync } from 'node:fs';
-import { mkdtemp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -137,6 +137,29 @@ test('directory projection returns JSON entries', async () => {
   const payload = JSON.parse(response.body);
   const names = JSON.stringify(payload);
   assert.match(names, /notes\.md/);
+});
+
+test('built client assets serve with correct MIME types in production', async () => {
+  // Middleware mode leaves dist/client to the wrapping server; a regression
+  // here loads pages with no CSS or client JS (and therefore no terminal).
+  const assetDir = join(repoRoot, 'apps/shell/dist/client/_astro');
+  const names = await readdir(assetDir);
+  const css = names.find((name) => name.endsWith('.css'));
+  const js = names.find((name) => name.endsWith('.js'));
+  assert.ok(css, 'built client CSS asset exists');
+  const cssResponse = await send(`/_astro/${css}`);
+  assert.equal(cssResponse.status, 200);
+  assert.match(cssResponse.headers['content-type'] ?? '', /^text\/css/);
+  if (js) {
+    const jsResponse = await send(`/_astro/${js}`);
+    assert.equal(jsResponse.status, 200);
+    assert.match(jsResponse.headers['content-type'] ?? '', /^text\/javascript/);
+  }
+});
+
+test('static asset paths cannot escape the client root', async () => {
+  const escape = await send('/_astro/..%2f..%2fserver%2findex.mjs', { headers: asCookie });
+  assert.notEqual(escape.status, 200);
 });
 
 test('encoded traversal segments are refused with 404', async () => {

@@ -31,7 +31,7 @@
 
 ## What has not been claimed
 
-- production Astro runtime hosted inside Electron and packaged-application behavior
+- fully packaged (electron-builder `.exe`) application behavior (the non-dev Electron runtime itself is verified)
 - workspace-switch session rebind refusal at runtime
 - complete output backpressure
 - process-tree cleanup proof
@@ -50,7 +50,7 @@
 
 Follow `docs/checkpoint/CURRENT.md` exactly.
 
-Phase 1 (install, build, launch, local-auth matrix, terminal reattachment) is verified on Windows 11. The security matrix now re-proves itself against the production runtime module on every `pnpm run test:regression`; see `docs/qa/REGRESSION.md` for the claim-to-guard map. The next task is the packaged-application proof described in the checkpoint's one next action.
+Phase 1 (install, build, launch, local-auth matrix, terminal reattachment) is verified on Windows 11, and the production runtime path is now verified inside a real non-dev Electron main process. The security matrix re-proves itself against the production runtime module on every `pnpm run test:regression`; see `docs/qa/REGRESSION.md` for the claim-to-guard map. The next task is the fully packaged `.exe` proof described in the checkpoint's one next action (currently blocked by a Windows Defender lock on the build output, not by code).
 
 Browser implementation begins from:
 

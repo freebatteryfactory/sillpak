@@ -24,6 +24,14 @@ Not yet verified: production `astro-runtime.ts` path, packaged app behavior, wor
 - `.github/workflows/ci.yml` added: Windows, macOS, and Linux matrix running frozen install, `pnpm check`, `pnpm build`, and the regression lane
 - CI is green on all three OSes (run 29496773793 at `b132ebf`); the first run failed on Windows and macOS inside the PTY probe and taught two portability facts: node-pty `kill()` forks a console-list agent that dies in console-less Windows CI sessions, and package managers can drop the execute bit on node-pty's prebuilt macOS `spawn-helper` (`posix_spawnp failed`)
 
+## Production runtime inside Electron (Windows 11, non-dev)
+
+- launched Electron with no `SILLPAK_DEV_URL` so `astro-runtime.ts` served the built shell; window loaded the authenticated origin, client JS executed, PTY shell spawned under the Electron tree
+- live probes against the bound loopback port: unauthenticated 401, foreign `Host` 421, `/_astro/*.css` 200 `text/css`
+- defect found and fixed: in middleware mode the node adapter does not serve `dist/client`; the first non-dev launch had no CSS/JS (and thus no terminal). `astro-runtime.ts` now serves client assets with correct MIME and containment; two regression assertions guard it
+- terminal end-of-session polish: writes to an ended session are answered in the broker with a friendly "session has ended — Restart" notice instead of forwarding a raw `session-not-found` to the renderer; a repository law guards this
+- `electron-builder --dir` produces `SillPak.exe`; confirming the packaged app runs green is blocked by a Windows Defender directory-handle lock on the signed `artifacts/` output that poisons the next build's project detection (environmental, clears on reboot). Packaging inputs (`electronVersion`, `author`, asar-unpacked shell, `.asar.unpacked` resolution, persisted startup error log) are all in place
+
 ## Executed
 
 - Git bundle cloned successfully from the original scaffold

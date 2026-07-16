@@ -32,6 +32,7 @@ interface TerminalRecord {
   replayBytes: number;
   droppedOutputBytes: number;
   terminationRequested: boolean;
+  endedNoticeSent: boolean;
 }
 
 type TerminalEventPayload =
@@ -139,6 +140,7 @@ export class TerminalBroker {
       replayBytes: 0,
       droppedOutputBytes: 0,
       terminationRequested: false,
+      endedNoticeSent: false,
     };
     this.sessions.set(request.sessionId, record);
     this.post({
@@ -162,6 +164,7 @@ export class TerminalBroker {
     record.replayBytes = 0;
     record.droppedOutputBytes = 0;
     record.terminationRequested = false;
+    record.endedNoticeSent = false;
     this.post({
       protocolVersion: TERMINAL_PROTOCOL_VERSION,
       type: 'restart',
@@ -172,6 +175,12 @@ export class TerminalBroker {
 
   write(owner: WebContents, sessionId: string, data: string): void {
     const record = this.owned(owner, sessionId);
+    // A write to an ended session must not reach the PTY host: the host would
+    // answer with a raw session-not-found protocol error for every keystroke.
+    if (!this.live(record)) {
+      this.noteEnded(record);
+      return;
+    }
     this.post({
       protocolVersion: TERMINAL_PROTOCOL_VERSION,
       type: 'write',
@@ -183,6 +192,7 @@ export class TerminalBroker {
 
   resize(owner: WebContents, sessionId: string, cols: number, rows: number): void {
     const record = this.owned(owner, sessionId);
+    if (!this.live(record)) return;
     this.post({
       protocolVersion: TERMINAL_PROTOCOL_VERSION,
       type: 'resize',
@@ -200,7 +210,7 @@ export class TerminalBroker {
 
   kill(owner: WebContents, sessionId: string): void {
     const record = this.owned(owner, sessionId);
-    if (record.state === 'exited' || record.state === 'killed') return;
+    if (record.state === 'exited' || record.state === 'killed' || record.state === 'failed') return;
     record.state = 'exiting';
     record.terminationRequested = true;
     this.post({
@@ -247,6 +257,21 @@ export class TerminalBroker {
     if (!record) throw new Error('terminal session does not exist');
     if (record.ownerId !== owner.id) throw new Error('terminal session is not owned by this window');
     return record;
+  }
+
+  private live(record: TerminalRecord): boolean {
+    return record.state === 'starting' || record.state === 'ready';
+  }
+
+  private noteEnded(record: TerminalRecord): void {
+    // 'exiting' means a stop is already in flight; stay quiet until it lands.
+    if (record.state === 'exiting' || record.endedNoticeSent) return;
+    record.endedNoticeSent = true;
+    this.emit(record, {
+      type: 'error',
+      code: 'session-ended',
+      message: 'This terminal session has ended. Use Restart to start a new shell.',
+    });
   }
 
   private post(command: PtyHostCommand): void {

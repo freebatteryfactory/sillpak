@@ -9,8 +9,9 @@ import {
   type IpcMainInvokeEvent,
   type OpenDialogOptions,
 } from 'electron';
-import { resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import type { ArtifactAddress } from '@sillpak/contracts';
 import { startAstroRuntime, type AstroRuntime } from './astro-runtime.js';
@@ -211,10 +212,19 @@ function installIpc(): void {
   });
 }
 
+function bootTrace(step: string): void {
+  if (!process.env.SILLPAK_BOOT_TRACE) return;
+  try { writeFileSync(join(app.getPath('userData'), 'boot-trace.log'), `${new Date().toISOString()} ${step}\n`, { flag: 'a' }); }
+  catch { /* tracing is best-effort */ }
+}
+
 app.whenReady().then(async () => {
+  bootTrace('ready');
   const defaultWorkspace = process.env.SILLPAK_WORKSPACE_ROOT ?? resolve(app.getPath('documents'));
   const workspace = await workspaceRegistry.initialize(defaultWorkspace);
+  bootTrace('workspace-initialized');
   broker.start();
+  bootTrace('broker-started');
 
   const devUrl = process.env.SILLPAK_DEV_URL;
   if (devUrl) {
@@ -224,21 +234,31 @@ app.whenReady().then(async () => {
     process.env.SILLPAK_ALLOWED_ORIGIN = local.origin;
     process.env.SILLPAK_EXPECTED_HOST = local.expectedHost;
   } else {
+    bootTrace(`runtime-start appPath=${app.getAppPath()}`);
     runtime = await startAstroRuntime(workspace.rootRealPath, app.getAppPath(), {
       controlToken: shellControlToken,
       sessionToken: shellSessionToken,
     });
     shellBaseUrl = runtime.url;
     shellOrigin = runtime.origin;
+    bootTrace(`runtime-ready ${runtime.origin}`);
   }
 
   await installLocalSessionCookie();
+  bootTrace('cookie-installed');
   installPermissions();
   installIpc();
   await watchWorkspace();
+  bootTrace('workspace-watched');
   await createWindow();
+  bootTrace('window-created');
 }).catch((error: unknown) => {
   const message = error instanceof Error ? error.stack ?? error.message : String(error);
+  // The dialog is invisible to headless diagnosis, and a packaged Windows GUI
+  // process has no usable stderr; persist the failure for post-mortems too.
+  console.error(`SillPak failed to start: ${message}`);
+  try { writeFileSync(join(app.getPath('userData'), 'startup-error.log'), `${new Date().toISOString()}\n${message}\n`); }
+  catch { /* the dialog remains the last resort */ }
   dialog.showErrorBox('SillPak failed to start', message);
   app.quit();
 });

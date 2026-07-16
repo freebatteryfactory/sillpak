@@ -42,6 +42,14 @@ test('the sandboxed preload mirrors the protocol channel contract', () => {
   assert.deepEqual(preloadChannels, protocolChannels);
 });
 
+test('input to an ended terminal session is refused in the broker, not forwarded', () => {
+  const broker = read('apps/desktop/src/terminal-broker.ts');
+  assert.match(broker, /write\(owner[\s\S]*?if \(!this\.live\(record\)\) \{\s*this\.noteEnded\(record\);\s*return;/);
+  assert.match(broker, /resize\(owner[\s\S]*?if \(!this\.live\(record\)\) return;/);
+  assert.match(broker, /code: 'session-ended'/);
+  assert.match(read('apps/shell/src/lib/client/terminal-controller.ts'), /session-ended/);
+});
+
 test('workspace switching is an explicit terminal stop boundary', () => {
   assert.match(read('apps/shell/src/lib/client/native-bridge-controller.ts'), /Changing workspace stops the current terminal session/);
   assert.match(read('apps/desktop/src/main.ts'), /broker\.closeWorkspace\(previous\.workspaceId, previous\.generation\)/);

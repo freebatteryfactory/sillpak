@@ -1,5 +1,7 @@
 appId: dev.freebatteryfactory.sillpak
 productName: SillPak
+# pnpm keeps electron inside apps/desktop, so the version is pinned here explicitly.
+electronVersion: 42.6.0
 directories:
   output: artifacts
 # node-pty and @parcel/watcher ship N-API prebuilds; rebuilding would require a local C++ toolchain.
@@ -15,6 +17,9 @@ asar: true
 asarUnpack:
   - '**/node_modules/node-pty/**'
   - '**/node_modules/@parcel/watcher/**'
+  # The Astro server is loaded with a real ESM import(), which cannot resolve
+  # reliably from inside the asar archive; keep the shell build as plain files.
+  - 'apps/shell/dist/**'
 mac:
   target: dmg
 win:

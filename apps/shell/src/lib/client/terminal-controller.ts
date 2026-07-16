@@ -78,7 +78,11 @@ export function bootTerminal(): void {
       if (event.type === 'ready' && status) status.textContent = `pid ${event.pid}`;
       if (event.type === 'output-truncated' && status) status.textContent = `history bounded · ${event.droppedBytes} bytes omitted`;
       if (event.type === 'exit' && status) status.textContent = `exited ${event.exitCode}`;
-      if (event.type === 'error') terminal.writeln(`\r\n[host:${event.code}] ${event.message}`);
+      if (event.type === 'error') {
+        // 'session-ended' is expected end-of-life guidance, not a host fault.
+        if (event.code === 'session-ended') terminal.writeln(`\r\n${event.message}`);
+        else terminal.writeln(`\r\n[host:${event.code}] ${event.message}`);
+      }
     }) ?? (() => undefined);
 
     const open = async () => {
