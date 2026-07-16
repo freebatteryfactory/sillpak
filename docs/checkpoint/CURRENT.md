@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-16
 **Branch:** `main`
-**State:** Phase 1 installed-application proof complete on Windows 11, now backed by a deterministic regression lane that re-proves the security matrix against the production runtime module. Packaged Electron behavior remains unverified. Cross-platform CI is defined; its first runs are pending.
+**State:** Phase 1 installed-application proof complete on Windows 11, now backed by a deterministic regression lane that re-proves the security matrix against the production runtime module. CI is green on Windows, macOS, and Linux (run 29496773793 at `b132ebf`): frozen install, full check, build, and the regression lane pass on all three. Packaged Electron behavior remains unverified.
 
 ## Verified in this checkpoint (Windows 11, dev mode)
 
@@ -43,7 +43,7 @@
 - output high-water behavior under sustained load
 - whole-process-tree cleanup
 - microphone and Whisper behavior
-- macOS and Linux runtime parity (CI proves install, check, build, and the regression lane per OS once its first runs are green; it never launches Electron)
+- macOS and Linux Electron runtime parity (CI proves install, check, build, security matrix, and PTY environment stripping per OS; it never launches Electron)
 - terminal utility-process crash behavior
 
 ## One next action

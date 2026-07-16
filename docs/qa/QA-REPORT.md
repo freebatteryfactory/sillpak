@@ -21,7 +21,8 @@ Not yet verified: production `astro-runtime.ts` path, packaged app behavior, wor
 - defect found and fixed by that test's first run: `astro-runtime.ts` resolved `dist/server/entry.mjs`, but Astro 7's node middleware adapter emits `dist/server/index.mjs`; the production launch path could never have booted
 - `tests/regression/pty-environment.test.mjs` proves the host-owned profile strips `SILLPAK_*` and that a real PTY child (ConPTY) observes zero `SILLPAK_*` variables at runtime
 - `docs/qa/REGRESSION.md` maps every checkpoint claim to its guard or names it operator-only
-- `.github/workflows/ci.yml` added: Windows, macOS, and Linux matrix running frozen install, `pnpm check`, `pnpm build`, and the regression lane; first CI runs were pending when this section was written — cross-platform claims wait for green runs
+- `.github/workflows/ci.yml` added: Windows, macOS, and Linux matrix running frozen install, `pnpm check`, `pnpm build`, and the regression lane
+- CI is green on all three OSes (run 29496773793 at `b132ebf`); the first run failed on Windows and macOS inside the PTY probe and taught two portability facts: node-pty `kill()` forks a console-list agent that dies in console-less Windows CI sessions, and package managers can drop the execute bit on node-pty's prebuilt macOS `spawn-helper` (`posix_spawnp failed`)
 
 ## Executed
 
