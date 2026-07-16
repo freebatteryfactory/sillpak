@@ -18,11 +18,12 @@ import { startAstroRuntime, type AstroRuntime } from './astro-runtime.js';
 import { channels, isArtifactAddress, isTerminalRendererCommand } from './protocol.js';
 import { parseLocalOrigin } from './local-origin.js';
 import { TerminalBroker } from './terminal-broker.js';
+import { createElectronPtyHostChannel } from './electron-pty-host-channel.js';
 import { resolveTerminalProfile } from './terminal-profile.js';
 import { WorkspaceRegistry } from './workspace-registry.js';
 import { WorkspaceWatcher } from './workspace-watcher.js';
 
-const broker = new TerminalBroker();
+const broker = new TerminalBroker(createElectronPtyHostChannel);
 const workspaceRegistry = new WorkspaceRegistry();
 const workspaceWatcher = new WorkspaceWatcher();
 let runtime: AstroRuntime | undefined;

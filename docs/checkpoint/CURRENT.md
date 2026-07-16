@@ -23,6 +23,7 @@
 - the production runtime module (`apps/desktop/src/astro-runtime.ts`) boots the built shell (`apps/shell/dist/server/index.mjs`) and the full security matrix passes through it — auth 200/401, Host 421, cross-site 403, Origin 403, content-type 415, traversal 404, byte range 206, save 200/400/409 (`tests/regression/production-security-matrix.test.mjs`)
 - built client assets serve with correct MIME types and cannot escape the client root (`tests/regression/production-security-matrix.test.mjs`)
 - a real PTY child (ConPTY on Windows) observes zero `SILLPAK_*` environment variables at runtime (`tests/regression/pty-environment.test.mjs`)
+- workspace switching is a deterministic terminal stop boundary: a change posts an explicit `kill` for the prior workspace generation (state → exiting/killed), renderer detach never kills, a session ID bound to one generation is never transplanted to another (`broker.open` throws), the new generation opens a fresh independent session, and input to the stopped generation yields the `session-ended` notice rather than reaching the PTY host (`tests/regression/workspace-switch.test.mjs`). The broker gained a transport seam (`PtyHostChannel`) so its lifecycle logic runs in plain Node with a fake channel; the real Electron `utilityProcess` transport moved to `apps/desktop/src/electron-pty-host-channel.ts` with byte-for-byte identical runtime behavior
 - `docs/qa/REGRESSION.md` maps every checkpoint claim to its deterministic guard or names it operator-only
 
 ## Verified inside a real non-dev Electron main process (Windows 11)
@@ -63,7 +64,7 @@
 
 ## Known unverified areas
 
-- workspace switching does not rebind an existing session (interactive flow not yet exercised)
+- the interactive native folder-dialog gesture itself (`dialog.showOpenDialog`) still needs a human; the broker/lifecycle logic it drives afterward — the stop boundary and no-session-rebind guarantee — is now covered by `tests/regression/workspace-switch.test.mjs`
 - old process-generation events ignored after restart (code-level law; event-level runtime assertion not captured)
 - output high-water behavior under sustained load
 - whole-process-tree cleanup
@@ -73,4 +74,9 @@
 
 ## One next action
 
-Exercise workspace switching in the running app (dev, non-dev, or packaged): with a command running in workspace A, choose workspace B and confirm the app warns, explicitly stops the prior generation's terminal, and never transplants the existing PTY into the new root. That closes the last named Phase 1 gap; then Phase 2 LiteShip projection work begins (which is also where an IDE-style directory tree in `NavigatorRail` belongs). The non-dev and packaged Electron runtimes, the security matrix through `astro-runtime.ts`, and runtime `SILLPAK_*` stripping are already proven (the latter two automated in `tests/regression/`).
+Phase 1 is closed. The last named gap — proving the workspace-switch stop
+boundary and no-session-rebind guarantee — is now a deterministic regression
+(`tests/regression/workspace-switch.test.mjs`) rather than an operator
+observation; only the interactive folder-dialog click remains human-driven.
+Begin Phase 2 LiteShip projection work (which is also where an IDE-style
+directory tree in `NavigatorRail` belongs).

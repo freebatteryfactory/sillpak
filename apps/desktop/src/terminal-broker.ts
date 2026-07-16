@@ -1,5 +1,4 @@
-import { utilityProcess, type UtilityProcess, type WebContents } from 'electron';
-import { fileURLToPath } from 'node:url';
+import type { WebContents } from 'electron';
 import type {
   TerminalHostEvent,
   TerminalOpenRequest,
@@ -15,6 +14,19 @@ import {
 } from './protocol.js';
 
 interface TerminalLaunchSpec extends Omit<ResolvedTerminalLaunch, 'processGeneration'> {}
+
+/**
+ * The broker's only link to the PTY utility process. The default runtime binds
+ * this to an Electron `utilityProcess` (see `electron-pty-host-channel.ts`), but
+ * the seam keeps the broker free of any Electron runtime import so its lifecycle
+ * logic can be driven directly in a plain-Node regression test.
+ */
+export interface PtyHostChannel {
+  post(command: PtyHostCommand): void;
+  onMessage(listener: (event: unknown) => void): void;
+  onExit(listener: (code: number) => void): void;
+  kill(): void;
+}
 
 interface TerminalRecord {
   readonly request: TerminalOpenRequest;
@@ -52,21 +64,17 @@ function compatible(existing: TerminalOpenRequest, incoming: TerminalOpenRequest
 }
 
 export class TerminalBroker {
-  private child: UtilityProcess | undefined;
+  private channel: PtyHostChannel | undefined;
   private readonly sessions = new Map<string, TerminalRecord>();
   private readonly contents = new Map<number, WebContents>();
 
+  constructor(private readonly createChannel: () => PtyHostChannel) {}
+
   start(): void {
-    if (this.child) return;
-    const entry = fileURLToPath(new URL('./pty-host.js', import.meta.url));
-    const env: NodeJS.ProcessEnv = {};
-    for (const [key, value] of Object.entries(process.env)) {
-      if (typeof value === 'string' && !key.startsWith('SILLPAK_')) env[key] = value;
-    }
-    this.child = utilityProcess.fork(entry, [], { serviceName: 'sillpak-pty-host', stdio: 'pipe', env });
-    this.child.stdout?.pipe(process.stdout);
-    this.child.stderr?.pipe(process.stderr);
-    this.child.on('message', (value: unknown) => {
+    if (this.channel) return;
+    const channel = this.createChannel();
+    this.channel = channel;
+    channel.onMessage((value: unknown) => {
       if (!isPtyHostEvent(value)) {
         for (const record of this.sessions.values()) {
           this.emit(record, {
@@ -79,8 +87,8 @@ export class TerminalBroker {
       }
       this.handleHostEvent(value);
     });
-    this.child.on('exit', (code) => {
-      this.child = undefined;
+    channel.onExit((code: number) => {
+      this.channel = undefined;
       for (const record of this.sessions.values()) {
         if (record.state === 'exited' || record.state === 'killed') continue;
         record.state = 'failed';
@@ -247,8 +255,8 @@ export class TerminalBroker {
   }
 
   stop(): void {
-    this.child?.kill();
-    this.child = undefined;
+    this.channel?.kill();
+    this.channel = undefined;
     this.contents.clear();
   }
 
@@ -275,8 +283,8 @@ export class TerminalBroker {
   }
 
   private post(command: PtyHostCommand): void {
-    if (!this.child) this.start();
-    this.child?.postMessage(command);
+    if (!this.channel) this.start();
+    this.channel?.post(command);
   }
 
   private handleHostEvent(event: PtyHostEvent): void {

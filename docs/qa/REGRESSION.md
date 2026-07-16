@@ -44,7 +44,10 @@ Linux for every push to `main` and every pull request:
 | lexical and post-realpath containment | `tests/unit/runtime-primitives.test.mjs` |
 | renderer cleanup detaches, never kills | `tests/laws/repository-laws.test.mjs` + `scripts/qa-architecture.mjs` |
 | preload channels mirror `protocol.ts` | `tests/laws/repository-laws.test.mjs` |
-| workspace switch is an explicit terminal-stop boundary | `tests/laws/repository-laws.test.mjs` (source law only) |
+| workspace switch is an explicit terminal-stop boundary (source law) | `tests/laws/repository-laws.test.mjs` |
+| workspace switch posts an explicit `kill` for the prior generation (state → exiting/killed) and renderer detach never kills | `tests/regression/workspace-switch.test.mjs` drives the real built broker through a fake `PtyHostChannel` |
+| a bound session ID is never transplanted across generations; the new generation opens a fresh, independent session and leaves the old record untouched | `tests/regression/workspace-switch.test.mjs` |
+| input to a stopped generation is not forwarded to the PTY host; it yields the `session-ended` notice | `tests/regression/workspace-switch.test.mjs` |
 | banned dependencies and HTML sinks stay out | Gauntlet gates + `scripts/qa-architecture.mjs` |
 
 ## Operator-only (no automated guard yet)
@@ -56,7 +59,11 @@ re-proven by any test. Do not cite them as continuously verified:
 - streaming PTY output survives a hard renderer reload
 - explicit Restart produces a fresh shell; explicit Stop ends the session
 - packaged-application behavior (cookie installation, permissions)
-- workspace-switch session rebind refusal as an interactive flow
+- the interactive native folder-dialog gesture (`dialog.showOpenDialog`): a human
+  still clicks a folder. The broker/lifecycle logic that runs after the dialog
+  resolves — the explicit stop boundary and no-session-rebind guarantee — is now
+  automated in `tests/regression/workspace-switch.test.mjs`; only the GUI click
+  remains operator-only.
 - output high-water behavior under sustained load
 - whole-process-tree cleanup
 
